@@ -1,4 +1,4 @@
-# This is the course material for the Programming Languages course
+# This is the material for the Programming Languages course
 ## Part A:
 #### November 3 2021 - started; 1 month break; December 28 started again
 - Week 1: 29-30 December
