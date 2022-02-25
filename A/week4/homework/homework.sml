@@ -36,8 +36,7 @@ datatype typ = Anything
 
 (**** you can put all your code here ****)
 
-
-
+(* fun only_capitals(xs)=filter((fn (v)=>(hd v).isUpper), xs); *)
 
 
 (* val test1 = only_capitals ["A","B","C"] = ["A","B","C"]*)
