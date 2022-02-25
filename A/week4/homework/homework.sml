@@ -37,13 +37,27 @@ datatype typ = Anything
 (**** you can put all your code here ****)
 
 (* fun only_capitals(xs)=filter((fn (v)=>(hd v).isUpper), xs); *)
+fun only_capitals(xs) = List.filter(fn x => Char.isUpper (String.sub(x, 0))) xs;
 
+val test1 = only_capitals ["A","B","C"] = ["A","B","C"]
 
-(* val test1 = only_capitals ["A","B","C"] = ["A","B","C"]*)
+(* fun foldl (f,acc,xs)= *)
+(*   case xs of *)
+(*        [] => acc *)
+(*      | x :: xs' => foldl (f, f(acc,x), xs'); *)
 
-(* val test2 = longest_string1 ["A","bc","C"] = "bc"*)
+(* fun longest_string1(xs) = foldl((fn (x,y)=>if String.size(x) > String.size(y) *)
+(*                                            then x else y), "", xs); *)
 
-(* val test3 = longest_string2 ["A","bc","C"] = "bc"*)
+fun longest_string1(xs) = List.foldl(fn (x,y) => if String.size(x) >
+  String.size y then x else y) "" xs;
+
+fun longest_string2(xs) = List.foldl(fn (x,y) => if String.size(y) >
+  String.size x then y else x) "" xs;
+
+val test2 = longest_string1 ["A","bc","bicnananaiski","C"] = "bicnananaiski"
+
+val test3 = longest_string2 ["A","bc","C"] = "bc"
 
 (* val test4a = longest_string3 ["A","bc","C"] = "bc"*)
 
