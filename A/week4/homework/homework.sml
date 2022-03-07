@@ -15,7 +15,7 @@ datatype valu = Const of int
               | Constructor of string * valu
 
 fun g f1 f2 p =
-    let 
+    let
     val r = g f1 f2
     in
     case p of
@@ -36,6 +36,7 @@ datatype typ = Anything
 
 (**** you can put all your code here ****)
 
+<<<<<<< HEAD
 fun only_capitals los =
     List.filter (fn x => Char.isUpper (String.sub (x, 0))) los;
 
@@ -73,7 +74,6 @@ fun map (f, xs) =
 
 (* fun count_wildcards p *)
 (*                     case p of *)
-
 
 val test1 = only_capitals ["A","B","C"] = ["A","B","C"]
 
