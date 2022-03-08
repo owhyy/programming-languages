@@ -26,7 +26,7 @@ fun g f1 f2 p =
       | _                 => 0
     end
 
-(**** for the challenge problem only ****)
+(* for the challenge problem only *)
 
 datatype typ = Anything
              | UnitT
@@ -34,9 +34,8 @@ datatype typ = Anything
              | TupleT of typ list
              | Datatype of string
 
-(**** you can put all your code here ****)
+(* you can put all your code here *)
 
-<<<<<<< HEAD
 fun only_capitals los =
     List.filter (fn x => Char.isUpper (String.sub (x, 0))) los;
 
@@ -61,19 +60,25 @@ val longest_capitalized =
 fun rev_string s =
     (implode o rev o explode) s;
 
-(* val first_answer = *)
-(*   fn f => List.map (f, ) *)
+(* not sure this is as it should be *)
+fun first_answer f l =
+    let val result = List.filter isSome (List.map f l)
+    in
+    if List.length result > 0 then valOf(List.sub (result, 0))
+    else raise NoAnswer
+    end;
 
-(* val test7 = first_answer (fn x => if x > 3 then SOME x else NONE) [1,2,3,4,5] = 4*)
-
-fun map (f, xs) =
-    case xs of
-        [] => []
-      | x::xs' =>  f(x)::map(f, xs');
+valOf(List.sub ((List.filter isSome (List.map(fn x => if x > 3 then SOME x else NONE) [1,2,3,4,5])), 0));
 
 
-(* fun count_wildcards p *)
-(*                     case p of *)
+(* fun map (f, xs) = *)
+(*     case xs of *)
+(*         [] => [] *)
+(*       | x::xs' =>  f(x)::map(f, xs'); *)
+
+(*i don't understand why this works*)
+fun count_wildcards p =
+    g (fn () => 1) (fn _ => 0) p;
 
 val test1 = only_capitals ["A","B","C"] = ["A","B","C"]
 
@@ -93,18 +98,18 @@ val test5 = longest_capitalized ["A","bc","C"] = "A"
 
 val test6 = rev_string "abc" = "cba"
 
-(* val test7 = first_answer (fn x => if x > 3 then SOME x else NONE) [1,2,3,4,5] = 4*)
+val test7 = first_answer (fn x => if x > 3 then SOME x else NONE) [1,2,3,4,5] = 4
 
 (* val test8 = all_answers (fn x => if x = 1 then SOME [x] else NONE) [2,3,4,5,6,7] = NONE*)
 
-(* val test9a = count_wildcards Wildcard = 1*)
+val test9a = count_wildcards Wildcard = 1
 
-(* val test9b = count_wild_and_variable_lengths (Variable("a")) = 1*)
+         (* val test9b = count_wild_and_variable_lengths (Variable("a")) = 1*)
 
-(* val test9c = count_some_var ("x", Variable("x")) = 1*)
+         (* val test9c = count_some_var ("x", Variable("x")) = 1*)
 
-(* val test10 = check_pat (Variable("x")) = true*)
+         (* val test10 = check_pat (Variable("x")) = true*)
 
-(* val test11 = match (Const(1), UnitP) = NONE*)
+         (* val test11 = match (Const(1), UnitP) = NONE*)
 
-(* val test12 = first_match Unit [UnitP] = SOME []*)
+         (* val test12 = first_match Unit [UnitP] = SOME []*)
