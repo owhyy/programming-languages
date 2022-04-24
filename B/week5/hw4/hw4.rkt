@@ -19,21 +19,44 @@
         ((null? xs) (error "list-nth-mod: empty list"))
         (else (car (list-tail xs (remainder n (length xs)))))))
 
+(define ones (lambda () (cons 1 ones)))
+
 (define (stream-for-n-steps s n)
-  null)
+  (letrec ([f (lambda (x ss)
+             (if (= n x)
+               null
+               (cons (car (ss))
+                          (f (+ x 1) (cdr (ss))))))])
+    (f 0 s)))
 
-(define funny-number-stream (lambda () 0))
+(define nats
+  (letrec ([f (lambda (x) (cons x (lambda () (f (+ x 1)))))])
+    (lambda () (f 1))))
 
-(define dan-then-dog (lambda () 0))
+(define funny-number-stream
+  (letrec ([f (lambda (x) (cons (if (= (remainder x 5) 0) (- x) x) (lambda () (f (+ x 1)))))])
+    (lambda () (f 1))))
 
+(define dan-then-dog
+  (letrec ([f (lambda (x) (cons x (lambda () (f (if (eq? x "dog.jpg") "dan.jpg" "dog.jpg")))))])
+    (lambda () (f "dan.jpg"))))
+
+; idk now
 (define (stream-add-zero s)
-  (lambda () null))
+ (lambda () (cons (cons 0 (car (s))) (stream-add-zero (cdr (s))))))
 
-(define (cycle-lists xs ys)
-  (lambda () null))
+; (define (cycle-lists xs ys)
+;   (letrec ([f (lambda (x) (cons (car xs) (car ys)
 
 (define (vector-assoc v vec)
-  #t)
+  (define (loop n)
+    (if (> n (vector-length vec))
+      #f
+      (letrec ([elem (vector-ref vec n)])
+          (if (and (pair? elem) (equal? (car elem) v))
+            elem
+            (loop (+ n 1))))))
+  (loop 0))
 
 (define (cached-assoc xs n)
   (lambda () null))
