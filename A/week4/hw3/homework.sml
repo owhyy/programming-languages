@@ -13,17 +13,18 @@ datatype valu = Const of int
               | Unit
               | Tuple of valu list
               | Constructor of string * valu
-
+(* r is the function that applies g f1 and f2 *)
+(* if p is a wildcard, f1 will be applied on everything??? *)
 fun g f1 f2 p =
     let
     val r = g f1 f2
     in
     case p of
-        Wildcard          => f1 ()
-      | Variable x        => f2 x
-      | TupleP ps         => List.foldl (fn (p,i) => (r p) + i) 0 ps
-      | ConstructorP(_,p) => r p
-      | _                 => 0
+         Wildcard          => f1 ()
+       | Variable x        => f2 x
+       | TupleP ps         => List.foldl (fn (p,i) => (r p) + i) 0 ps
+       | ConstructorP(_,p) => r p
+       | _                 => 0
     end
 
 (* for the challenge problem only *)
@@ -49,36 +50,77 @@ fun longest_string_helper f =
     List.foldl (fn (x, y) => if f (String.size x, String.size y) then x else y) "" ;
 
 val longest_string3 =
- fn los => longest_string_helper (fn (x, y) => x>y) los;
+    longest_string_helper (fn (x, y) => x > y);
 
 val longest_string4 =
- fn los => longest_string_helper (fn (x, y) => x>=y) los;
+    longest_string_helper (fn (x, y) => x >= y);
 
 val longest_capitalized =
- fn los => (longest_string1 o only_capitals) los;
+    longest_string1 o only_capitals;
 
 fun rev_string s =
     (implode o rev o explode) s;
 
-(* not sure this is as it should be *)
 fun first_answer f l =
-    let val result = List.filter isSome (List.map f l)
+    case l of
+         [] => raise NoAnswer
+       | x::xs => case f x of
+                       SOME e => e
+                     | NONE => first_answer f xs
+
+fun all_answers f l =
+    let fun aux l acc =
+            case l of
+                 [] => SOME acc
+               | x::xs => case f x of
+                               SOME e => aux xs (e @ acc)
+                             | NONE => NONE
     in
-    if List.length result > 0 then valOf(List.sub (result, 0))
-    else raise NoAnswer
+    aux l []
     end;
 
-valOf(List.sub ((List.filter isSome (List.map(fn x => if x > 3 then SOME x else NONE) [1,2,3,4,5])), 0));
+val count_wildcards =
+    g (fn _ => 1) (fn _ => 0);
+
+val count_wild_and_variable_lengths =
+    g (fn _ => 1) String.size;
+
+fun count_some_var (s, p) =
+    g (fn _ => 0) (fn x => if x = s then 1 else 0) p;
+
+(* true if all the variables are distinct *)
+(* 1. patern -> list of all strings it uses for variables *)
+(* 2. list of strings -> true if has repeats, false otherwise *)
+
+fun check_pat p =
+    let fun lo_variable_names (p, acc) =
+            case p of
+                 Variable e => e::acc
+               | TupleP e => List.foldl lo_variable_names acc e
+               | ConstructorP(_, p) => lo_variable_names (p, acc)
+               | _ => acc
+        fun all_distinct los =
+            case los of
+                 [] => true
+               | a::b => (not (List.exists (fn x => x = a) b)) andalso (all_distinct b)
+    in
+    all_distinct (lo_variable_names (p, []))
+    end;
+
+fun match (v, p) =
+    case (v, p) of
+         (_, Wildcard) => SOME []
+       | (v, Variable s) => SOME [(s, v)]
+       | (Unit, UnitP) => SOME []
+       | (Const v, ConstP n) => if v=n then SOME [] else NONE
+       | (Tuple vs, TupleP  ps)  => if List.length vs = List.length ps then all_answers match (ListPair.zip(vs, ps)) else NONE
+       | (Constructor(s1, v), (ConstructorP(s2, p))) => if s1 = s2 then match (v, p) else NONE
+       | _ => NONE
 
 
-(* fun map (f, xs) = *)
-(*     case xs of *)
-(*         [] => [] *)
-(*       | x::xs' =>  f(x)::map(f, xs'); *)
-
-(*i don't understand why this works*)
-fun count_wildcards p =
-    g (fn () => 1) (fn _ => 0) p;
+fun first_match v lop =
+    SOME (first_answer (fn p => match(v, p)) lop)
+    handle NoAnswer => NONE
 
 val test1 = only_capitals ["A","B","C"] = ["A","B","C"]
 
@@ -100,16 +142,16 @@ val test6 = rev_string "abc" = "cba"
 
 val test7 = first_answer (fn x => if x > 3 then SOME x else NONE) [1,2,3,4,5] = 4
 
-(* val test8 = all_answers (fn x => if x = 1 then SOME [x] else NONE) [2,3,4,5,6,7] = NONE*)
+val test8 = all_answers (fn x => if x = 1 then SOME [x] else NONE) [2,3,4,5,6,7] = NONE
 
 val test9a = count_wildcards Wildcard = 1
 
-         (* val test9b = count_wild_and_variable_lengths (Variable("a")) = 1*)
+val test9b = count_wild_and_variable_lengths (Variable("a")) = 1
 
-         (* val test9c = count_some_var ("x", Variable("x")) = 1*)
+val test9c = count_some_var ("x", Variable("x")) = 1
 
-         (* val test10 = check_pat (Variable("x")) = true*)
+val test10 = check_pat (Variable("x")) = true
 
-         (* val test11 = match (Const(1), UnitP) = NONE*)
+val test11 = match (Const(1), UnitP) = NONE
 
-         (* val test12 = first_match Unit [UnitP] = SOME []*)
+val test12 = first_match Unit [UnitP] = SOME []
