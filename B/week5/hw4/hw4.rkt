@@ -59,9 +59,19 @@
 (define (cycle-lists xs ys)
   (define (rec (n) (lambda () (rec (+ n 1)))))) ; (rec calls itself with n+1 inside a thunk)
 
+#| (define (cycle-lists xs ys) |#
+#|   (define (rec (n) (rec (+ n 1)))) |#
+#|   (letrec ([f (lambda (x y) (rec (+ n 1))]) |#
+
 (define (cycle-lists xs ys)
-  (define (rec (n) (rec (+ n 1))))
-  (letrec ([f (lambda (x y) (rec (+ n 1))])
+  (letrec ([f (lambda (x y)
+                (cons x y)
+
+
+;; should produce a stream whose car is (cons (car xs) (car ys)) and cdr is (lambda() (f (+ n 1))
+;; could use the same idea as dan-then-dog (alternating if last = car)
+
+
 
 (define (vector-assoc v vec)
   (define (loop n)
