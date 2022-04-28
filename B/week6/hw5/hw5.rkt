@@ -24,15 +24,16 @@
 
 (define (racketlist->mupllist rl)
   (if (null? rl)
-    aunit
+    (aunit)
     (apair (car rl)
-           (racketlist->muplist (cdr rl)))))
+           (racketlist->mupllist (cdr rl)))))
 
-(define (mupllist->racketlist ml)
-  (if (isaunit ml)
-    null
-    (cons (fst ml)
-          (muplist->racketlist (snd ml)))))
+;; todo
+#| (define (mupllist->racketlist ml) |#
+     #|   (if (isaunit? ml) |#
+            #|     null |#
+            #|     (cons (eval-under-env (fst-e ml) null) |#
+                         #|           (mupllist->racketlist (eval-under-env (snd-e ml) null))))) |#
 
 ;; Problem 2
 
@@ -50,31 +51,43 @@
 (define (eval-under-env e env)
   (cond [(var? e)
          (envlookup env (var-string e))]
+        [(int? e) e]
         [(add? e)
          (let ([v1 (eval-under-env (add-e1 e) env)]
                [v2 (eval-under-env (add-e2 e) env)])
            (if (and (int? v1)
                     (int? v2))
-               (int (+ (int-num v1)
-                       (int-num v2)))
-               (error "MUPL addition applied to non-number")))]
-        [(value? e) e]
-        [(function? e) (closure env e)] ;functions evaluate to closure holding the function and the current envirnoment
-        ;; i imagine something like (closure env e)
-        ;; this also somehow needs to type-check
-        ;; so needs to check if (type-eq? v1 v2 ... vn)
+             (int (+ (int-num v1) (int-num v2))) ;; convert to an int
+             (error "MUPL addition applied to non-number")))]
+        [(fun? e) (closure env e)] ;functions evaluate to closure holding the function and the current environment ;; todo
         [(ifgreater? e)
-         (let ([v1 (eval-under-env (eval-e1 e) env)]
-               [v2 (eval-under-env (eval-e2 e) env)]
-               [v3 null]
-               [v4 null])
+         (let ([v1 (eval-under-env (ifgreater-e1 e) env)]
+               [v2 (eval-under-env (ifgreater-e2 e) env)])
            (if (and (int? v1)
                     (int? v2))
-             (if (> v1 v2) ; not sure it will work?
-               (eval-under-env (eval-e3 e) env)
-               (eval-under-env (eval-e4 e) env))
-             (error "MUPL ifgreater branch types differ")))]
-
+             (if (> (int-num v1) (int-num v2))
+               ;; should this be convert to int or not?
+               (eval-under-env (ifgreater-e3 e) env)
+               (eval-under-env (ifgreater-e4 e) env))
+             (error "MUPL ifgreater first 2 subexpressions are not int")))]
+        [(mlet? e)
+         (let ([v (eval-under-env (mlet-e e) env)]
+               [exp (eval-under-env (mlet-body e) (mlet-body e))]) null)] ;; todo
+        [(call? e) null] ; todo
+        [(apair? e)
+         (let ([e1 (eval-under-env (apair-e1 e) env)]
+               [e2 (eval-under-env (apair-e2 e) env)])
+           (apair e1 e2))]
+        [(fst? e)
+         (let ([subexp (eval-under-env (fst-e e) env)])
+           (if (apair? subexp)
+             (apair-e1 subexp)
+             (error "MUPL fst applied to a non-pair")))]
+        [(snd? e)
+         (let ([subexp (eval-under-env (snd-e e) env)])
+           (if (apair? subexp)
+             (apair-e2 subexp)
+             (error "MUPL snd applied to a non-pair")))]
         [#t (error (format "bad MUPL expression: ~v" e))]))
 
 ;; Do NOT change
