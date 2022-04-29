@@ -6,13 +6,13 @@
 ;; put your code below
 (define (sequence low high stride)
   (if (> low high)
-      null
-      (cons low (sequence (+ low stride) high stride))))
+    null
+    (cons low (sequence (+ low stride) high stride))))
 
 (define (string-append-map xs suffix)
   (if (empty? xs)
-      empty
-      (cons (string-append (car xs) suffix) (string-append-map (cdr xs) suffix))))
+    empty
+    (cons (string-append (car xs) suffix) (string-append-map (cdr xs) suffix))))
 
 (define (list-nth-mod xs n)
   (cond ((< n 0)  (error "list-nth-mod: negative number"))
@@ -24,9 +24,9 @@
 (define (stream-for-n-steps s n)
   (letrec ([f (lambda (x ss)
                 (if (= n x)
-                    null
-                    (cons (car (ss))
-                          (f (+ x 1) (cdr (ss))))))])
+                  null
+                  (cons (car (ss))
+                        (f (+ x 1) (cdr (ss))))))])
     (f 0 s)))
 
 (define nats
@@ -38,8 +38,8 @@
 (define funny-number-stream
   (letrec ([f (lambda (x)
                 (cons (if (= (remainder x 5) 0)
-                          (- x)
-                          x)
+                        (- x)
+                        x)
                       (lambda () (f (+ x 1)))))])
     (lambda () (f 1))))
 
@@ -47,9 +47,9 @@
   (letrec ([f (lambda (x)
                 (cons x
                       (lambda () (f
-                                  (if (eq? x "dog.jpg")
-                                      "dan.jpg"
-                                      "dog.jpg")))))])
+                                   (if (eq? x "dog.jpg")
+                                     "dan.jpg"
+                                     "dog.jpg")))))])
     (lambda () (f "dan.jpg"))))
 
 (define (stream-add-zero s)
@@ -66,11 +66,11 @@
 (define (vector-assoc v vec)
   (define (loop n)
     (if (>= n (vector-length vec))
-        #f
-        (letrec ([elem (vector-ref vec n)])
-          (if (and (pair? elem) (equal? (car elem) v))
-              elem
-              (loop (+ n 1))))))
+      #f
+      (letrec ([elem (vector-ref vec n)])
+        (if (and (pair? elem) (equal? (car elem) v))
+          elem
+          (loop (+ n 1))))))
   (loop 0))
 
 ;; should return a function taking in a value v and returninng the same thing assoc returns;
@@ -87,13 +87,13 @@
   (lambda (v)
     (define (loop cache index)
       (if (vector-assoc v cache)
-          (vector-assoc v cache)
-          (if (assoc v xs)
-              (begin
-                (vector-set! cache index (assoc v xs))
-                (set! index (if (= index (- n 1)) 0 (+ index 1)))
-                (assoc v xs))
-              #f)))
+        (vector-assoc v cache)
+        (if (assoc v xs)
+          (begin
+            (vector-set! cache index (assoc v xs))
+            (set! index (if (= index (- n 1)) 0 (+ index 1)))
+            (assoc v xs))
+          #f)))
     (loop (make-vector n #f) 0)))
 
 ;; e1 e2 are expressions
@@ -115,7 +115,7 @@
   (letrec ([loop (lambda (stream)
                    (let ([pr (stream)])
                      (if (car pr)
-                         #t
-                         (loop (cdr pr)))))])
+                       #t
+                       (loop (cdr pr)))))])
     (loop (while-less e1 e2))))
 
