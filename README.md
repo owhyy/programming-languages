@@ -14,7 +14,6 @@
 ## Part B:
 - [X] Week 5: 25-27 April
   - [X] hw4
-- [ ] Week 6: 27-xx April
- - [ ] hw5
+- [X] Week 6: 27-29 April
+  - [X] hw5
 - [ ] Week 7: 27-xx April
- - [ ] hw5
