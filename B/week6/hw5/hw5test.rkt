@@ -17,7 +17,7 @@
    (check-equal? (racketlist->mupllist (list (int 3) (int 4))) (apair (int 3) (apair (int 4) (aunit))) "racketlist->mupllist test")
 
    ;; check mupllist to racketlist with normal list
-   ;(check-equal? (mupllist->racketlist (apair (int 3) (apair (int 4) (aunit)))) (list (int 3) (int 4)) "racketlist->mupllist test")
+   (check-equal? (mupllist->racketlist (apair (int 3) (apair (int 4) (aunit)))) (list (int 3) (int 4)) "racketlist->mupllist test")
 
    ;; tests if add works
    (check-equal? (eval-exp (add (int 3) (int 4))) (int 7) "add test")
@@ -41,27 +41,32 @@
    (check-equal? (eval-exp (isaunit (closure '() (fun #f "x" (aunit))))) (int 0) "isaunit test: is not a unit")
    (check-equal? (eval-exp (isaunit (aunit))) (int 1) "isaunit test: is a unit")
 
-   #| ;; ifaunit test |#
+   ;; ifaunit test
    (check-equal? (eval-exp (ifaunit (int 1) (int 2) (int 3))) (int 3) "ifaunit test")
 
-   #| ;; mlet* test |#
+   ;; mlet* test on a list with a single element
    (check-equal? (eval-exp (mlet* (list (cons "x" (int 10))) (var "x"))) (int 10) "mlet* test")
+   ;; mlet* test on a list with more elements
+   (check-equal? (eval-exp (mlet* (list (cons "x" (int 10)) (cons "y" (int 31))) (apair (var "x") (var "y")))) (apair (int 10) (int 31)) "mlet* test")
+   ;; mlet* test on a list with more elements, one defined in terms of the other
+   (check-equal? (eval-exp (mlet* (list (cons "x" (int 10)) (cons "y" (add (var "x") (int 21)))) (apair (var "x") (var "y")))) (apair (int 10) (int 31)) "mlet* test")
 
-   #| ;; ifeq test |#
+   ;; ifeq test
    (check-equal? (eval-exp (ifeq (int 1) (int 2) (int 3) (int 4))) (int 4) "ifeq test")
 
-   #| ;; mupl-map test |#
+   ;; mupl-map test
    (check-equal? (eval-exp (call (call mupl-map (fun #f "x" (add (var "x") (int 7)))) (apair (int 1) (aunit))))
                  (apair (int 8) (aunit)) "mupl-map test")
 
-   #| ;; problems 1, 2, and 4 combined test |#
-   #| (check-equal? (mupllist->racketlist |#
-   #| (eval-exp (call (call mupl-mapAddN (int 7)) |#
-   #|                 (racketlist->mupllist |#
-   #|                  (list (int 3) (int 4) (int 9)))))) (list (int 10) (int 11) (int 16)) "combined test") |#
+   ;; problems 1, 2, and 4 combined test
+   (check-equal? (mupllist->racketlist
+                   (eval-exp (call (call mupl-mapAddN (int 7))
+                                   (racketlist->mupllist
+                                     (list (int 3) (int 4) (int 9)))))) (list (int 10) (int 11) (int 16)) "combined test")
 
    ))
 
 (require rackunit/text-ui)
 ;; runs the test
+
 (run-tests tests)

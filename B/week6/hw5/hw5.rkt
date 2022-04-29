@@ -28,12 +28,11 @@
     (apair (car rl)
            (racketlist->mupllist (cdr rl)))))
 
-;; todo
-#| (define (mupllist->racketlist ml) |#
-     #|   (if (isaunit? ml) |#
-            #|     null |#
-            #|     (cons (eval-under-env (fst-e ml) null) |#
-                         #|           (mupllist->racketlist (eval-under-env (snd-e ml) null))))) |#
+(define (mupllist->racketlist ml)
+  (if (aunit? (eval-exp ml))
+    null
+    (cons (eval-exp (fst ml))
+          (mupllist->racketlist (eval-exp (snd ml))))))
 
 ;; Problem 2
 
@@ -52,8 +51,8 @@
   (cond [(var? e) ; variables evaluate to their values
          (envlookup env (var-string e))]
         [(int? e) e] ; expressions evaluate to themselves
-        [(aunit? e) (aunit)] ; not sure
-        [(closure? e) e] ; not sure?
+        [(aunit? e) (aunit)]
+        [(closure? e) e]
         [(add? e) ; add evaluates to (int (+ v1 v2))
          (let ([v1 (eval-under-env (add-e1 e) env)]
                [v2 (eval-under-env (add-e2 e) env)])
@@ -70,12 +69,11 @@
              (if (> (int-num v1) (int-num v2))
                (eval-under-env (ifgreater-e3 e) env)
                (eval-under-env (ifgreater-e4 e) env))
-             (error "MUPL ifgreater first 2 subexpressions are not int")))]
+             (error "MUPL ifgreater arguments are not int")))]
         [(mlet? e) ; a mlet evaluates its body using an environment in which its mlet-var(the name) has the value of its first expression(mlet-e)
          (let ([v (eval-under-env (mlet-e e) env)])
-           (eval-under-env (mlet-body e) (append (list (cons (mlet-var e) v)) env)))] ;; not sure if it should be list or cons or something else
+           (eval-under-env (mlet-body e) (append (list (cons (mlet-var e) v)) env)))]
         [(call? e)
-         #| (check-equal? (eval-exp (call (closure '() (fun #f "x" (add (var "x") (int 7)))) (int 1))) (int 8) "call test") |#
          (let ([call-function-closure (eval-under-env (call-funexp e) env)]
                [call-actual-parameter (eval-under-env (call-actual e) env)])
            ;; a call has 2 things:
@@ -89,15 +87,15 @@
            ;; - a formal parameter
            ;; - a body
            (if (not (closure? call-function-closure)) ; if the first argument of the call is not a closure
-             (error "MUPL call first subexpression is not a closure") ; then error
+             (error "MUPL applied to non-closure") ; then error
              (letrec ([closure-environment (closure-env call-function-closure)]
                       [closure-function (closure-fun call-function-closure)]
                       [function-name (fun-nameopt closure-function)]
                       [function-formal-parameter (fun-formal closure-function)]
                       [function-body (fun-body closure-function)])
                (if function-name ; if the function's name is not #f, add it to the environment in which you evaluate it
-                 (eval-under-env function-body (append (list (cons function-name closure-function) (cons function-formal-parameter call-actual-parameter) closure-environment)))
-                 (eval-under-env function-body (append (list (cons function-formal-parameter call-actual-parameter) closure-environment)))))))] ; otherwise just evaluate it
+                 (eval-under-env function-body (append (list (cons function-name call-function-closure) (cons function-formal-parameter call-actual-parameter)) closure-environment))
+                 (eval-under-env function-body (append (list (cons function-formal-parameter call-actual-parameter)) closure-environment))))))] ; otherwise just evaluate it
         [(apair? e) ; a pair evaluates to a pair of the evaluated subexpressions
          (let ([e1 (eval-under-env (apair-e1 e) env)]
                [e2 (eval-under-env (apair-e2 e) env)])
@@ -132,35 +130,27 @@
 ; this basically needs evaluate e2 to an environment in which every string from lstlst is bound to its expression
 ; lstlst is a (list (cons "x" expression)
 
-; in order to bind something to a variable in an environment, we need to
-; (cons (cons name exp) env)
 (define (mlet* lstlst e2)
-  (define (build-env env l)
-    (if (null? l)
-      null
-      (cons (cons (car (car l)) (cdr (car l)))
-            (build-env env (cdr l)))))
-  (eval-under-env e2 (build-env '() lstlst)))
+  (if (null? lstlst)
+    e2
+    (mlet (caar lstlst)
+          (cdar lstlst)
+          (mlet* (cdr lstlst) e2))))
+
+#| (append (list (cons (mlet-var e) v)) |#
+;((x . #(struct:int 10)))((x . #(struct:int 10)) (y . #(struct:int 31)))((x . #(struct:int 10)) (y . #(struct:add #(struct:var x) #(struct:int 21))))
 
 (define (ifeq e1 e2 e3 e4)
-  (let ([v1 (eval-exp e1)]
-        [v2 (eval-exp e2)])
-    (if (and (int? v1)
-             (int? v2))
-      (if (= (int-num v1) (int-num v2))
-        e3
-        e4)
-      (error "MUPL ifeq first 2 subexpressions are not int"))))
+  (ifgreater
+    (mlet "_x" e1
+          (mlet "_y" e2
+                (ifgreater (var "_x") (var "_y")
+                           (int 1)
+                           (int -1))))
+    (int 0) e3 e4))
 
 ;; Problem 4
 
-#| (check-equal? (eval-exp (call (call mupl-map (fun #f "x" (add (var "x") (int 7)))) (apair (int 1) (aunit)))) |#
-                 #| (apair (int 8) (aunit)) "mupl-map test") |#
-
-;; functions evaluate to closure
-;; call evaluates to the right thing, but it needs to be called with a function and some arguments
-
-;; todo finish
 (define mupl-map
   (fun #f "fn"
        (fun "loop" "l"
@@ -171,7 +161,9 @@
 
 (define mupl-mapAddN
   (mlet "map" mupl-map
-        "CHANGE (notice map is now in MUPL scope)"))
+        (fun #f "i"
+             (fun #f "xs"
+                  (call (call (var "map") (fun #f "x" (add (var "x") (var "i")))) (var "xs"))))))
 
 ;; Challenge Problem
 
