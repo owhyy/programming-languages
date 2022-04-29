@@ -56,10 +56,10 @@
     (check-equal? ((cached-assoc (list (cons 1 2) (cons 3 4)) 3) 3) (cons 3 4) "cached-assoc test")
 
     ;while-less test (no macro)
-    (check-equal? (while-less 7 (begin (set! a (+ a 1)) a)) #t "while-less test (no macro)")
+    ;(check-equal? (while-less 7 (begin (set! a (+ a 1)) a)) #t "while-less test (no macro)")
 
     ; while-less test (macro)
-   ; (check-equal? (while-less 7 do (begin (set! a (+ a 1)) a)) #t "while-less test (macro)")
+    ; (check-equal? (while-less 7 do (begin (set! a (+ a 1)) a)) #t "while-less test (macro)")
 
     ))
 
