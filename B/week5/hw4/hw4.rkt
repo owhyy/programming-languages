@@ -10,9 +10,7 @@
     (cons low (sequence (+ low stride) high stride))))
 
 (define (string-append-map xs suffix)
-  (if (empty? xs)
-    empty
-    (cons (string-append (car xs) suffix) (string-append-map (cdr xs) suffix))))
+  (map (lambda (x) (string-append x suffix)) xs))
 
 (define (list-nth-mod xs n)
   (cond ((< n 0)  (error "list-nth-mod: negative number"))
@@ -84,17 +82,20 @@
 ;; you'll need a variable for holding the vector and a second variable to keep track of which slot you need to mutate it: after modifying cache, increment variable, or set it back to 0 (if (= index n))
 
 (define (cached-assoc xs n)
-  (lambda (v)
-    (define (loop cache index)
-      (if (vector-assoc v cache)
-        (vector-assoc v cache)
-        (if (assoc v xs)
-          (begin
-            (vector-set! cache index (assoc v xs))
-            (set! index (if (= index (- n 1)) 0 (+ index 1)))
-            (assoc v xs))
-          #f)))
-    (loop (make-vector n #f) 0)))
+  (letrec ([cache (make-vector n #f)]
+           [index 0]
+           [f (lambda (v)
+                (let ([found-in-cache (vector-assoc v cache)])
+                  (if found-in-cache
+                    found-in-cache
+                    (let ([found-in-pair (assoc v xs)])
+                      (if found-in-pair
+                        (begin
+                          (vector-set! cache index found-in-pair)
+                          (set! index (if (= index (- n 1)) 0 (+ index 1)))
+                          found-in-pair)
+                        #f)))))])
+    f))
 
 ;; e1 e2 are expressions
 ;; while-less do are syntax
@@ -106,16 +107,11 @@
 ;; should use a recursive thunk
 
 ;(define a 2)
-; idk yet
+;still not working
 (define (while-less e1 e2)
-  (letrec ([f (lambda (res)
-                (cons (< res e2) ;; if the result is a number < (e2), stop
-                      (lambda ()(f res))))]) ;; otherwise keep on calling itself, but don't re-evaluate (e1)
-    (lambda () (f e1)))
-  (letrec ([loop (lambda (stream)
-                   (let ([pr (stream)])
-                     (if (car pr)
-                       #t
-                       (loop (cdr pr)))))])
-    (loop (while-less e1 e2))))
-
+  (begin (letrec ([e e1]
+                  [f (lambda()
+                       (if (> e e2)
+                         (f)
+                         #t))])
+           (f))))
