@@ -98,7 +98,7 @@ class Board
   def initialize (game)
     @grid = Array.new(num_rows) {Array.new(num_columns)} # cool macro style; grid is 27 10-element arrays
     @current_block = Piece.next_piece(self)
-    @score = 1000
+    @score = 0
     @game = game
     @delay = 300
   end

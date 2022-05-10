@@ -8,7 +8,12 @@ require 'tk'
 class TetrisRoot
   def initialize
     @root = TkRoot.new('height' => 615, 'width' => 205,
-                       'background' => 'lightblue') {title "Tetris"}
+                       'background' => 'lightblue') { title 'Tetris' }
+  end
+
+  def restart
+    @root.restart
+    initialize
   end
 
   def bind(char, callback)
@@ -66,22 +71,30 @@ class TetrisLabel
     @label.place('height' => height, 'width' => width, 'x' => x, 'y' => y)
   end
 
+  def remove
+    @label.remove
+  end
+
   def text(str)
     @label.text(str)
   end
 end
 
 class TetrisButton
-  def initialize(label, color)
+  def initialize(label, color, &block)
     @button = TkButton.new do
       text label
       background color
-      command (proc {yield})
+      command(proc(&block))
     end
   end
 
   def place(height, width, x, y)
     @button.place('height' => height, 'width' => width, 'x' => x, 'y' => y)
+  end
+
+  def remove
+    @button.unplace
   end
 end
 
@@ -99,7 +112,6 @@ class TetrisRect # this is what is used to draw the pieces (the rectangles that 
   def move(dx, dy)
     @rect.move(dx, dy)
   end
-
 end
 
 def mainLoop
