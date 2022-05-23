@@ -141,6 +141,38 @@ class Point < GeometryValue
   def shift(dx, dy)
     initialize(dx + x, dy + y)
   end
+
+  def intersect(e)
+    e.intersectPoint(self)
+  end
+
+  def intersectPoint(p)
+    if real_close_point x, y, p.x, p.y
+      then self
+    else
+      NoPoints
+    end
+  end
+
+  def intersectLine(line)
+    if real_close(y, line.m * x + line.b)
+      then self
+    else
+      NoPoints
+    end
+  end
+
+  def intersectVerticalLine(vline)
+    if real_close x, vline.x
+      then self
+    else
+      NoPoints
+    end
+  end
+
+  def intersectWithSegmentAsLineResult(seg)
+    seg.intersect(self)
+  end
 end
 
 class Line < GeometryValue
@@ -164,6 +196,36 @@ class Line < GeometryValue
   def shift(dx, dy)
     initialize(m, ((b + dy) - (m * dx)))
   end
+
+  def intersect(e)
+    e.intersectLine(self)
+  end
+
+  def intersectPoint(p)
+    p.intersect(self)
+  end
+
+  def intersectLine(line)
+    if real_close(m, line.m)
+      then if real_close(b, line.b)
+            then self
+           else
+             NoPoints
+           end
+    else
+      x = (line.b - b) / (m - line.m)
+      y = m * x + b
+      Point.new(x, y)
+    end
+  end
+
+  def intersectVerticalLine(vline)
+    Point.new(vline.x, m * vline.x + b)
+  end
+
+  def intersectWithSegmentAsLineResult(seg)
+    seg.intersect(self)
+  end
 end
 
 class VerticalLine < GeometryValue
@@ -185,6 +247,30 @@ class VerticalLine < GeometryValue
 
   def shift(dx, _dy)
     initialize x + dx
+  end
+
+  def intersect(_e)
+    intersectVerticalLine(self)
+  end
+
+  def intersectPoint(p)
+    p.intersect(self)
+  end
+
+  def intersectLine(line)
+    line.intersect(self)
+  end
+
+  def intersectVerticalLine(vline)
+    if real_close x, vline.x
+      then self
+    else
+      NoPoints
+    end
+  end
+
+  def intersectWithSegmentAsLineResult(seg)
+    seg.intersect(self)
   end
 end
 
@@ -214,6 +300,35 @@ class LineSegment < GeometryValue
   def shift(dx, dy)
     initialize(x1 + dx, y1 + dy, x2 + dx, y2 + dy)
   end
+
+  def intersect(e)
+    i.intersectWithSegmentAsLineResult(self)
+  end
+
+       # fun inbetween(v,end1,end2) =
+       #     (end1 - epsilon <= v andalso v <= end2 + epsilon)
+       #     orelse (end2 - epsilon <= v andalso v <= end1 + epsilon)
+       # val (x1,y1,x2,y2) = seg
+       # in
+       # if inbetween(x0,x1,x2) andalso inbetween(y0,y1,y2)
+       # then Point(x0,y0)
+       # else NoPoints
+
+  def intersectPoint(_p)
+    self
+  end
+
+  def intersectLine(_line)
+    self
+  end
+
+  def intersectVerticalLine(_vline)
+    self
+  end
+
+  def intersectWithSegmentAsLineResult(_seg)
+    self
+  end
 end
 
 # NOTE: there is no need for getter methods for the non-value classes
@@ -230,6 +345,7 @@ class Intersect < GeometryExpression
     @e1.intersect(@e2)
   end
 
+  # i think this needs to be changed
   def preprocess_prog
     self
   end
