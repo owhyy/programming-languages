@@ -27,7 +27,7 @@
 
 - [x] Week 8: 30-10 May (got covid :o)
   - [x] hw6
-- [ ] Week 9: 10-xx May
-  - [ ] hw7
-- [ ] Week 10: xx-xx May
+- [x] Week 9: 10-28 May
+  - [x] hw7
+- [ ] Week 10: 28-28 May
   - [ ] test
